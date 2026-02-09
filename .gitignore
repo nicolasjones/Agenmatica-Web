@@ -1,0 +1,9 @@
+# Standard .gitignore for Web Projects
+.DS_Store
+node_modules/
+dist/
+.env
+.agent/
+brain/
+*.log
+.gemini/
