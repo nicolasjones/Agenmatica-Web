@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set timeout 10
+spawn sftp -P 65002 u860820588@147.79.84.97
+expect "password:"
+send "Nmj!129168\r"
+expect "sftp>"
+send "ls\r"
+expect "sftp>"
+send "bye\r"
+expect eof

@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+set timeout 15
+spawn ssh -p 65002 u860820588@147.79.84.97
+expect {
+    "password:" {
+        send "Nmj!129168\r"
+    }
+    "Permission denied" {
+        exit 1
+    }
+}
+expect "$ " {
+    send "whoami\r"
+    expect "$ "
+    send "ls -F\r"
+    expect "$ "
+    send "exit\r"
+}
+expect eof

@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         modal.classList.remove('hidden');
+        // Small delay to allow the removal of 'hidden' to register before adding 'active' for the transition
         setTimeout(() => {
             modal.classList.add('active');
         }, 10);
@@ -102,8 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeServiceModal = () => {
         modal.classList.remove('active');
+        // Wait for the transition to finish before hiding the element completely
         setTimeout(() => {
-            modal.classList.add('hidden');
+            if (!modal.classList.contains('active')) {
+                modal.classList.add('hidden');
+            }
         }, 500);
         document.body.style.overflow = '';
     };
@@ -122,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (modal.classList.contains('active')) closeServiceModal();
-            if (chatWindow.classList.contains('active')) toggleChat();
+            if (chatWindow && chatWindow.classList.contains('active')) toggleChat();
         }
     });
 
@@ -144,9 +148,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chatMessages');
 
     const toggleChat = () => {
-        chatWindow.classList.toggle('active');
-        if (chatWindow.classList.contains('active')) {
-            chatInput.focus();
+        if (!chatWindow.classList.contains('active')) {
+            chatWindow.classList.remove('hidden');
+            setTimeout(() => {
+                chatWindow.classList.add('active');
+                chatInput.focus();
+            }, 10);
+        } else {
+            chatWindow.classList.remove('active');
+            setTimeout(() => {
+                if (!chatWindow.classList.contains('active')) {
+                    chatWindow.classList.add('hidden');
+                }
+            }, 500);
         }
     };
 
@@ -210,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const callOpenAI = async (userMessage) => {
+    const callWebhook = async (userMessage) => {
         // Estado de "pensando"
         const thinkingDiv = document.createElement('div');
         thinkingDiv.className = 'flex flex-col gap-2 max-w-[85%] animate-pulse chatbot-thinking';
@@ -223,61 +237,31 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
-            // CONFIGURACIÓN OPENAI
-            const API_KEY = 'TU_OPENAI_API_KEY';
-            const API_URL = 'https://api.openai.com/v1/chat/completions';
+            // WEBHOOK N8N
+            const WEBHOOK_URL = 'https://n8n-q4sgg80gkwsk8gkcowsk4so8.31.97.27.4.sslip.io/webhook-test/d7143c16-0efa-4b7f-85f4-fce025a2b65d';
 
-            // CONTEXTO DEL AGENTE
-            const SYSTEM_CONTEXT = `
-                Tu nombre es Genai, eres el Agente Inteligente de Agenmatica. Tu objetivo es ayudar a clientes potenciales con información sobre la empresa.
-                TONO: Profesional, formal (usa "usted"), tecnológico y directo.
-                
-                INFORMACIÓN DE AGENMATICA:
-                - Es una empresa de ingeniería de automatización con IA para negocios reales.
-                - SERVICIOS:
-                  1. Ventas 24/7 (WhatsApp): Agentes que califican y cierran ventas automáticamente.
-                  2. Reactivación: Sistemas que traen de vuelta a clientes inactivos.
-                  3. Reuniones B2B: Automatización de prospección y agenda.
-                  4. Rescate de Leads: Contacto inmediato con leads de marketing.
-                  5. Auditoría IA: Revisión técnica de la operación para encontrar fugas de dinero.
-                  6. Gestión y Soporte: Mantenimiento de la infraestructura de IA.
-                
-                REGLAS:
-                - No menciones que eres una IA a menos que te pregunten.
-                - Si te preguntan precios, indica que son a medida y que lo ideal es agendar una Auditoría.
-                - Siempre intenta llevar al usuario a "Agendar una Auditoría".
-                - Si el usuario pregunta algo que NO conoces o que es ajeno a Agenmatica, DEBES decir exactamente: "Lo siento, no tengo esa información específica. ¿Le gustaría hablar con un especialista por WhatsApp para resolver esto?"
-            `;
-
-            const response = await fetch(API_URL, {
+            const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${API_KEY}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o',
-                    messages: [
-                        { role: 'system', content: SYSTEM_CONTEXT },
-                        { role: 'user', content: userMessage }
-                    ],
-                    temperature: 0.7
+                    message: userMessage,
+                    sessionId: 'agenmatica-web-session' // Opcional: podrías usar un ID de sesión real
                 })
             });
 
             if (!response.ok) {
-                const errorBody = await response.json();
-                console.group('DEBUG: OpenAI API Error');
-                console.error('Status:', response.status);
-                console.error('Body:', errorBody);
-                console.groupEnd();
-                throw new Error('Error al conectar con OpenAI');
+                throw new Error('Error al conectar con el asistente de Agenmatica');
             }
 
             const data = await response.json();
-            const aiAnswer = data.choices[0].message.content;
 
-            // Detectar si estamos ofreciendo WhatsApp
+            // Asumimos que n8n devuelve { output: "respuesta" } o similar
+            // Adaptamos según el formato de respuesta del workflow
+            const aiAnswer = data.output || data.response || data.message || "Lo siento, no he podido procesar su mensaje en este momento.";
+
+            // Detectar si estamos ofreciendo WhatsApp (opcional, si el n8n lo maneja)
             if (aiAnswer.includes("WhatsApp")) {
                 isAwaitingWhatsAppConfirm = true;
             } else {
@@ -288,9 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
             appendMessage(aiAnswer, true);
 
         } catch (error) {
-            console.error('Error OpenAI:', error);
+            console.error('Error Webhook:', error);
             chatMessages.removeChild(thinkingDiv);
-            appendMessage("Lo siento, tengo problemas de conexión temporal. ¿Desea que agendemos una llamada directamente?", true);
+            appendMessage("Lo siento, tengo problemas de conexión temporal. ¿Desea que hablemos directamente por WhatsApp?", true);
         }
     };
 
@@ -313,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            callOpenAI(message);
+            callWebhook(message);
         }
     });
 });

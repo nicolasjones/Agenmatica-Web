@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn scp -P 65002 index.html style.css script.js u860820588@147.79.84.97:domains/agenmatica.com/public_html/
+expect {
+    "password:" {
+        send "Nmj!129168\r"
+        exp_continue
+    }
+}
+
+spawn scp -P 65002 -r assets u860820588@147.79.84.97:domains/agenmatica.com/public_html/
+expect {
+    "password:" {
+        send "Nmj!129168\r"
+        exp_continue
+    }
+}
+expect eof

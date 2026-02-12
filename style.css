@@ -64,6 +64,7 @@ body {
 .tidal-card {
     border: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(26, 26, 26, 0.9);
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     transition: all 0.5s ease;
 }
@@ -122,17 +123,56 @@ body {
 }
 
 /* Modal Styles */
+#serviceModal {
+    display: none;
+    /* Default hidden */
+    opacity: 0;
+    -webkit-transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease;
+}
+
 #serviceModal.active {
+    opacity: 1;
+}
+
+#serviceModal:not(.hidden) {
     display: flex;
+    /* Shown when not hidden class is present */
+}
+
+#serviceModal .modal-content {
+    -webkit-transform: scale(0.95);
+    transform: scale(0.95);
+    opacity: 0;
+    -webkit-transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #serviceModal.active .modal-content {
+    -webkit-transform: scale(1);
     transform: scale(1);
     opacity: 1;
 }
 
 .modal-overlay {
     cursor: pointer;
+    -webkit-transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease;
+}
+
+/* Fallback for backdrop-filter on older Androids */
+.backdrop-blur-md,
+.backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+
+    .bg-container-gray\/95,
+    .bg-circuit-gray\/95 {
+        background-color: rgba(26, 26, 26, 0.98) !important;
+    }
 }
 
 .problem-text {
@@ -148,6 +188,7 @@ body {
 /* Chatbot Styles */
 #chatWindow.active {
     opacity: 1;
+    -webkit-transform: scale(1);
     transform: scale(1);
     pointer-events: auto;
 }
