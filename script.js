@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // WEBHOOK N8N
-            const WEBHOOK_URL = 'https://n8n-q4sgg80gkwsk8gkcowsk4so8.31.97.27.4.sslip.io/webhook-test/d7143c16-0efa-4b7f-85f4-fce025a2b65d';
+            const WEBHOOK_URL = 'https://n8n-q4sgg80gkwsk8gkcowsk4so8.31.97.27.4.sslip.io/webhook/d7143c16-0efa-4b7f-85f4-fce025a2b65d';
 
             const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
