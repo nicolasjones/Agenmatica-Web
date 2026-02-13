@@ -240,6 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // WEBHOOK N8N
             const WEBHOOK_URL = 'https://n8n-q4sgg80gkwsk8gkcowsk4so8.31.97.27.4.sslip.io/webhook/d7143c16-0efa-4b7f-85f4-fce025a2b65d';
 
+            // Obtener o generar ID de sesión único
+            let sessionId = localStorage.getItem('agenmatica_chat_session');
+            if (!sessionId) {
+                sessionId = 'sess_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('agenmatica_chat_session', sessionId);
+            }
+
             const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
@@ -247,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     message: userMessage,
-                    sessionId: 'agenmatica-web-session' // Opcional: podrías usar un ID de sesión real
+                    sessionId: sessionId
                 })
             });
 
